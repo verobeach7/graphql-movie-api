@@ -24,6 +24,10 @@ const typeDefs = `#graphql
     # 수많은 트윗 중 어떤 트윗인지 알기 위해서 argument를 제공
     tweet(id: ID): Tweet
   }
+  type Mutation{
+    postTweet(text: String, userId: ID): Tweet
+    deleteTweet(id: ID): Boolean # 해당 트윗을 찾았으면 True, 없으면 False 반환
+  }
 `;
 
 // Create an instance of ApolloServer
