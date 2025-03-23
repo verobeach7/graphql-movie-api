@@ -6,10 +6,12 @@ let tweets = [
   {
     id: "1",
     text: "first one",
+    userId: "2",
   },
   {
     id: "2",
     text: "second one",
+    userId: "1",
   },
 ];
 
@@ -40,7 +42,7 @@ const typeDefs = `#graphql
   }
   type Query {
     allUsers: [User!]!
-    allTweets: [Tweet!]!
+    allTweets: [Tweet!]! # 3. Tweet Type의 리스트를 반환
     tweet(id: ID!): Tweet
   }
   type Mutation{
@@ -51,26 +53,35 @@ const typeDefs = `#graphql
 
 const resolvers = {
   Query: {
+    // 1. allTweets() 호출
     allTweets() {
-      return tweets;
+      return tweets; // 2. tweets 반환
     },
     tweet(_, { id }) {
       return tweets.find((tweet) => tweet.id === id);
     },
-    // 1. allUsers()가 호출됨. Query Type에 따르면 allUsers는 User Type의 리스트를 반환해야 함.
     allUsers() {
       console.log("all users called!");
-      return users; // 2. users를 반환하려고 보니 fullName이 없음. User Resolver가 있는지 찾아봄.
+      return users;
     },
   },
   Mutation: {
     postTweet(_, { text, userId }) {
-      const newTweet = {
-        id: tweets.length + 1,
-        text,
-      };
-      tweets.push(newTweet);
-      return newTweet;
+      try {
+        const user = users.find((user) => user.id === userId);
+        if (!user) throw new Error(`User ID ${userId} is not found.`);
+        else {
+          const newTweet = {
+            id: tweets.length + 1,
+            text,
+            userId,
+          };
+          tweets.push(newTweet);
+          return newTweet;
+        }
+      } catch (e) {
+        console.log(e);
+      }
     },
     deleteTweet(_, { id }) {
       const tweet = tweets.find((tweet) => tweet.id === id);
@@ -79,13 +90,17 @@ const resolvers = {
       return true;
     },
   },
-  // 3. User Resolver가 있으므로 실행
   User: {
-    // fullName(root) {
-    //  console.log(root); // root는 Resolver Function의 첫번째 인자로 들어옴
     fullName({ firstName, lastName }) {
       console.log("fullname called!");
-      return `${firstName} ${lastName}`; // 4. fullName 값을 생성하여 항상 존재하게 되므로 에러를 발생시키지 않게 됨
+      return `${firstName} ${lastName}`;
+    },
+  },
+  // 4. author가 없으므로 Resolvers를 확인해봄
+  Tweet: {
+    // 5. Tweet의 userId를 이용하여 users에서 해당 user가 있는지 확인
+    author({ userId }) {
+      return users.find((user) => user.id === userId); // 6. 해당 user를 반환
     },
   },
 };
