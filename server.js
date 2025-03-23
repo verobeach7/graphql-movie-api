@@ -1,7 +1,6 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 
-// Fake DB
 let tweets = [
   {
     id: "1",
@@ -33,8 +32,14 @@ const typeDefs = `#graphql
     id: ID!
     firstName: String!
     lastName: String!
+    """
+    Is the sum of firstName + lastName as a string
+    """
     fullName: String!
   }
+  """
+  Tweet object represents a resource for a Tweet
+  """
   type Tweet {
     id: ID!
     text: String!
@@ -47,15 +52,17 @@ const typeDefs = `#graphql
   }
   type Mutation{
     postTweet(text: String!, userId: ID!): Tweet!
+    """
+    Deletes a Tweet if found, else return false
+    """
     deleteTweet(id: ID!): Boolean! 
   }
 `;
 
 const resolvers = {
   Query: {
-    // 1. allTweets() 호출
     allTweets() {
-      return tweets; // 2. tweets 반환
+      return tweets;
     },
     tweet(_, { id }) {
       return tweets.find((tweet) => tweet.id === id);
@@ -96,11 +103,9 @@ const resolvers = {
       return `${firstName} ${lastName}`;
     },
   },
-  // 4. author가 없으므로 Resolvers를 확인해봄
   Tweet: {
-    // 5. Tweet의 userId를 이용하여 users에서 해당 user가 있는지 확인
     author({ userId }) {
-      return users.find((user) => user.id === userId); // 6. 해당 user를 반환
+      return users.find((user) => user.id === userId);
     },
   },
 };
